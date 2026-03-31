@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://aframe.io https://cdn.jsdelivr.net; 
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://aframe.io https://cdn.jsdelivr.net; 
+        worker-src 'self' blob:; 
+        connect-src 'self' https://aframe.io https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline'; 
+        img-src 'self' data: blob:; 
+        media-src 'self' data: blob:;">
+
+    <title>AR Mind Fixed</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body style="margin: 0px; overflow: hidden;">
+
+    <a-scene mindar-image="imageTargetSrc: targets.mind;" 
+             vr-mode-ui="enabled: false" 
+             device-orientation-permission-ui="enabled: false">
+        
+        <a-assets>
+            <video id="ocean-video" src="23009-332257760.mp4" loop="true" crossorigin="anonymous" playsinline></video>
+            <a-asset-item id="ship-m" src="cartoonic_pirates_ship.glb"></a-asset-item>
+        </a-assets>
+
+        <a-camera position="0 0 0" look-controls="enabled: false">
+            <a-entity cursor="fuse: false; rayOrigin: mouse;" raycaster="objects: .clickable"></a-entity>
+        </a-camera>
+
+        <a-entity mindar-image-target="targetIndex: 0" id="marker-video">
+            <a-video src="#ocean-video" position="0 0 0" width="1" height="0.55"></a-video>
+        </a-entity>
+
+        <a-entity mindar-image-target="targetIndex: 1" id="marker-ship">
+            <a-entity id="ship-container" rotate-on-click>
+                <a-box class="clickable" 
+                       scale="0.6 0.6 0.6" 
+                       material="opacity: 0; transparent: true">
+                </a-box>
+                <a-gltf-model src="#ship-m" position="0 -0.1 0" scale="0.1 0.1 0.1"></a-gltf-model>
+            </a-entity>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // Компонент вращения
+        AFRAME.registerComponent('rotate-on-click', {
+            init: function () {
+                this.el.addEventListener('click', () => {
+                    console.log("Клик сработал, вращаю!");
+                    this.el.object3D.rotation.y += (45 * Math.PI / 180);
+                });
+            }
+        });
+
+        // Видео логика
+        const mVideo = document.querySelector('#marker-video');
+        const vElem = document.getElementById('ocean-video');
+
+        mVideo.addEventListener('targetFound', () => {
+            console.log("Видео маркер найден");
+            vElem.play().catch(e => console.log("Браузер заблокировал звук, нужен клик"));
+        });
+        
+        mVideo.addEventListener('targetLost', () => {
+            vElem.pause();
+        });
+    </script>
+</body>
+</html>
